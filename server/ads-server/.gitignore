@@ -1,0 +1,4 @@
+ads.db
+__pycache__/
+.env
+/static/uploads/*

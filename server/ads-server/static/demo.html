@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>广告系统演示页面</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .feature h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+        
+        .demo-info {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .demo-info h3 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+        
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: #ffd700;
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 广告系统演示</h1>
+            <p>智能广告展示与统计系统</p>
+        </div>
+        
+        <div class="content">
+            <h2>欢迎使用广告展示系统</h2>
+            <p>这是一个功能完整的广告展示和统计系统演示页面。系统会自动加载并展示广告，同时统计页面访问量和广告点击量。</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <h3>🎨 智能展示</h3>
+                    <p>自动在页面中心展示主广告，右下角展示次要广告</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>📊 数据统计</h3>
+                    <p>实时统计页面访问量、广告点击量等关键数据</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>⚙️ 灵活配置</h3>
+                    <p>支持广告状态管理、X号重定向等多种配置选项</p>
+                </div>
+                
+                <div class="feature">
+                    <h3>🔧 易于集成</h3>
+                    <p>只需引入一个JS文件即可在任何网站中使用</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-info">
+            <h3>📝 使用说明</h3>
+            <p>要在您的网站中使用此广告系统，只需在HTML页面中添加以下代码：</p>
+            <div class="code-block">
+&lt;script src="http://localhost:8000/static/ad-script.js"&gt;&lt;/script&gt;
+            </div>
+            
+            <h4>功能特点：</h4>
+            <ul>
+                <li>✅ 自动记录页面访问量</li>
+                <li>✅ 随机展示主广告和次要广告</li>
+                <li>✅ 支持广告点击统计</li>
+                <li>✅ 可配置X号重定向功能</li>
+                <li>✅ 响应式设计，适配各种设备</li>
+            </ul>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="http://localhost:8000/docs" class="btn" target="_blank">📚 API文档</a>
+                <a href="#" class="btn" onclick="location.reload()">🔄 重新加载广告</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 引入广告脚本 -->
+    <script src="./ad-script.js"></script>
+</body>
+</html>

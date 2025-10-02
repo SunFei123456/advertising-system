@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 全局高度以支持布局充满视口 */
+html, body, #root {
+  height: 100%;
+}
+
+/* 避免垂直滚动条出现/消失引发的布局抖动 */
+body {
+  scrollbar-gutter: stable both-edges;
+}
