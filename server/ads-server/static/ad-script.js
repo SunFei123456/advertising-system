@@ -17,6 +17,8 @@
     
     // 广告数据
     let adData = null;
+    // 广告设置（频率控制等）
+    let adSettings = null;
     
     // 初始化
     function init() {
@@ -29,6 +31,38 @@
         createAdContainers();
         recordPageView();
         loadAds();
+    }
+    
+    // 获取今天的日期字符串（用于频率控制）
+    function getTodayString() {
+        const now = new Date();
+        return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    }
+    
+    // 检查今天是否已显示过主广告
+    function hasShownMainAdToday() {
+        const today = getTodayString();
+        const lastShownDate = localStorage.getItem('ad_main_last_shown');
+        return lastShownDate === today;
+    }
+    
+    // 检查今天是否已显示过次要广告
+    function hasShownSecondaryAdToday() {
+        const today = getTodayString();
+        const lastShownDate = localStorage.getItem('ad_secondary_last_shown');
+        return lastShownDate === today;
+    }
+    
+    // 记录主广告已显示
+    function markMainAdShown() {
+        const today = getTodayString();
+        localStorage.setItem('ad_main_last_shown', today);
+    }
+    
+    // 记录次要广告已显示
+    function markSecondaryAdShown() {
+        const today = getTodayString();
+        localStorage.setItem('ad_secondary_last_shown', today);
     }
     
     // 创建广告容器
@@ -80,11 +114,15 @@
     
     // 加载广告
     function loadAds() {
-        fetch(`${CONFIG.API_BASE}/ads/random_pair`)
+        // 获取当前域名
+        const currentDomain = window.location.hostname;
+        
+        fetch(`${CONFIG.API_BASE}/ads/random_pair?domain=${encodeURIComponent(currentDomain)}`)
             .then(response => response.json())
             .then(data => {
-                if (data.code === 200 && data.data) {
+                if (data.code === 200) {
                     adData = data.data;
+                    adSettings = data.settings || {};
                     displayAds();
                 }
             })
@@ -93,11 +131,30 @@
     
     // 显示广告
     function displayAds() {
+        // 主广告：检查频率控制
         if (adData.main) {
-            displayMainAd(adData.main);
+            const mainOncePerDay = adSettings.main_ad_once_per_day || false;
+            if (mainOncePerDay && hasShownMainAdToday()) {
+                console.log('主广告今日已显示，跳过');
+            } else {
+                displayMainAd(adData.main);
+                if (mainOncePerDay) {
+                    markMainAdShown();
+                }
+            }
         }
+        
+        // 次要广告：检查频率控制
         if (adData.secondary) {
-            displaySecondaryAd(adData.secondary);
+            const secondaryOncePerDay = adSettings.secondary_ad_once_per_day || false;
+            if (secondaryOncePerDay && hasShownSecondaryAdToday()) {
+                console.log('次要广告今日已显示，跳过');
+            } else {
+                displaySecondaryAd(adData.secondary);
+                if (secondaryOncePerDay) {
+                    markSecondaryAdShown();
+                }
+            }
         }
     }
     

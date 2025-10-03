@@ -52,6 +52,8 @@ class AdSettingsOut(BaseModel):
     global_enabled: bool
     main_enabled: bool
     secondary_enabled: bool
+    main_ad_once_per_day: bool
+    secondary_ad_once_per_day: bool
 
 
 class AdSettingsPatch(BaseModel):
@@ -59,6 +61,13 @@ class AdSettingsPatch(BaseModel):
     global_enabled: Optional[bool] = None
     main_enabled: Optional[bool] = None
     secondary_enabled: Optional[bool] = None
+    main_ad_once_per_day: Optional[bool] = None
+    secondary_ad_once_per_day: Optional[bool] = None
+
+
+class DomainIn(BaseModel):
+    """域名输入模型"""
+    domain: str
 
 
 @app.on_event('startup')
@@ -93,12 +102,31 @@ def list_ads(start: Optional[str]=None, end: Optional[str]=None, type: Optional[
 
 
 @app.get('/ads/random_pair')
-def random_pair():
+def random_pair(domain: Optional[str] = None, request: Request = None):
+    # 获取域名（优先从参数，其次从请求头）
+    if not domain:
+        domain = extract_domain_from_headers(request) if request else 'unknown'
+    
+    # 检查域名是否在黑名单中
+    if domain and domain != 'unknown' and db.is_domain_blacklisted(domain):
+        return {
+            'code': 200,
+            'msg': 'domain blacklisted',
+            'data': {'main': None, 'secondary': None}
+        }
+    
+    # 获取广告设置（包括频率控制）
+    settings = db.get_ad_settings()
+    
     pair = db.get_random_pair()
     return {
         'code': 200,
         'msg': 'success',
-        'data': pair
+        'data': pair,
+        'settings': {
+            'main_ad_once_per_day': settings['main_ad_once_per_day'],
+            'secondary_ad_once_per_day': settings['secondary_ad_once_per_day'],
+        }
     }
 
 
@@ -116,6 +144,8 @@ def patch_ad_settings(payload: AdSettingsPatch):
         global_enabled=payload.global_enabled,
         main_enabled=payload.main_enabled,
         secondary_enabled=payload.secondary_enabled,
+        main_ad_once_per_day=payload.main_ad_once_per_day,
+        secondary_ad_once_per_day=payload.secondary_ad_once_per_day,
     )
     return {'ok': True}
 
@@ -305,3 +335,40 @@ def visitors_by_domain_ip(start: str, end: str, page: int = 1, page_size: int = 
         },
         'summary':result['summary']
     }
+
+
+# 域名黑名单管理接口
+@app.get('/domains/blacklist')
+def get_blacklist_domains():
+    """获取黑名单域名列表"""
+    domains = db.list_blacklist_domains()
+    return {'data': domains}
+
+
+@app.post('/domains/blacklist')
+def add_to_blacklist(payload: DomainIn):
+    """添加域名到黑名单"""
+    if not payload.domain or payload.domain.strip() == '':
+        raise HTTPException(status_code=400, detail='domain cannot be empty')
+    
+    domain = payload.domain.strip()
+    success = db.add_domain_to_blacklist(domain)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail='domain already in blacklist')
+    
+    return {'ok': True, 'domain': domain}
+
+
+@app.delete('/domains/blacklist/{domain_id}')
+def remove_from_blacklist(domain_id: int):
+    """从黑名单移除域名"""
+    db.remove_domain_from_blacklist(domain_id)
+    return {'ok': True}
+
+
+@app.get('/domains/blacklist/check')
+def check_domain_blacklist(domain: str):
+    """检查域名是否在黑名单中"""
+    is_blacklisted = db.is_domain_blacklisted(domain)
+    return {'domain': domain, 'blacklisted': is_blacklisted}

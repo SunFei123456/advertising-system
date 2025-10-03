@@ -1,6 +1,6 @@
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMoon, faSun, faList, faGauge, faRightFromBracket, faMagnifyingGlass, faXmark, faHouse, faGlobe, faCircleQuestion, faChevronLeft, faChevronRight, faChevronDown, faAngleRight, faBars, faSort, faSortUp, faSortDown, faUser, faUsers, faExpand, faCompress, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faMoon, faSun, faList, faGauge, faRightFromBracket, faMagnifyingGlass, faXmark, faHouse, faGlobe, faCircleQuestion, faChevronLeft, faChevronRight, faChevronDown, faAngleRight, faBars, faSort, faSortUp, faSortDown, faUser, faUsers, faExpand, faCompress, faPlus, faShield } from '@fortawesome/free-solid-svg-icons'
 
 // 图标集中封装，便于按需管理
 export const icons = {
@@ -27,6 +27,7 @@ export const icons = {
   expand: faExpand,
   compress: faCompress,
   plus: faPlus,
+  shield: faShield,
 }
 
 export default function Icon({ name, className }) {

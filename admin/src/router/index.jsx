@@ -5,6 +5,7 @@ import AdManagement from '../pages/AdManagement';
 import TrafficManagement from '../pages/TrafficManagement';
 import Stats from '../pages/Stats';
 import VisitorStats from '../pages/VisitorStats';
+import DomainManagement from '../pages/DomainManagement';
 import Login from '../pages/Login';
 import { useAuthStore } from '../stores/auth';
 
@@ -29,6 +30,7 @@ export default function AppRoutes() {
         <Route index element={<TrafficManagement />} />
         <Route path="traffic" element={<TrafficManagement />} />
         <Route path="ads" element={<AdManagement />} />
+        <Route path="domains" element={<DomainManagement />} />
         <Route path="stats" element={<Stats />} />
         <Route path="visitor-stats" element={<VisitorStats />} />
       </Route>

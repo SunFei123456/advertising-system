@@ -18,6 +18,7 @@ export default function MainLayout() {
   const crumbNameMap = {
     'traffic': '网站流量管理',
     'ads': '广告管理',
+    'domains': '域名黑名单管理',
     'stats': '广告点击来源统计',
     'visitor-stats': '访客来源统计',
   }
@@ -125,6 +126,15 @@ export default function MainLayout() {
               <span className="inline-flex items-center gap-3">
                 <Icon name="list" className="w-5 h-5" />
                 {!collapsed && <span className="font-medium">广告管理</span>}
+              </span>
+            </NavLink>
+            <NavLink
+              to="/domains"
+              className={({ isActive }) => `px-4 py-3 rounded-lg transition-all duration-200 ${isActive ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-zinc-800 hover:shadow-md'}`}
+            >
+              <span className="inline-flex items-center gap-3">
+                <Icon name="shield" className="w-5 h-5" />
+                {!collapsed && <span className="font-medium">域名黑名单</span>}
               </span>
             </NavLink>
             <NavLink

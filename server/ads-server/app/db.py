@@ -36,6 +36,15 @@ SCHEMA_TABLES = [
         v VARCHAR(255) NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """,
+    # 域名黑名单表
+    """
+    CREATE TABLE IF NOT EXISTS domain_blacklist (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        domain VARCHAR(255) NOT NULL UNIQUE,
+        created_at DATETIME,
+        INDEX idx_domain (domain)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """,
     # 页面访问量，按 day 为唯一键
     """
     CREATE TABLE IF NOT EXISTS page_views (
@@ -125,6 +134,9 @@ def init_db():
                 cur.execute("INSERT IGNORE INTO settings (k, v) VALUES ('ads_global_enabled', 'true')")
                 cur.execute("INSERT IGNORE INTO settings (k, v) VALUES ('ads_main_enabled', 'true')")
                 cur.execute("INSERT IGNORE INTO settings (k, v) VALUES ('ads_secondary_enabled', 'true')")
+                # 广告频率控制：主广告和次要广告每日仅弹出一次的开关，默认关闭
+                cur.execute("INSERT IGNORE INTO settings (k, v) VALUES ('main_ad_once_per_day', 'false')")
+                cur.execute("INSERT IGNORE INTO settings (k, v) VALUES ('secondary_ad_once_per_day', 'false')")
         finally:
             conn.close()
 
@@ -291,18 +303,23 @@ def _to_bool(s: str, default: bool = True) -> bool:
 
 
 def get_ad_settings():
-    """返回广告投放相关的三个布尔设置。"""
+    """返回广告投放相关的布尔设置。"""
     ge = _to_bool(get_setting('ads_global_enabled', 'true'), True)
     me = _to_bool(get_setting('ads_main_enabled', 'true'), True)
     se = _to_bool(get_setting('ads_secondary_enabled', 'true'), True)
+    main_once = _to_bool(get_setting('main_ad_once_per_day', 'false'), False)
+    sec_once = _to_bool(get_setting('secondary_ad_once_per_day', 'false'), False)
     return {
         'global_enabled': ge,
         'main_enabled': me,
         'secondary_enabled': se,
+        'main_ad_once_per_day': main_once,
+        'secondary_ad_once_per_day': sec_once,
     }
 
 
-def update_ad_settings(global_enabled: bool = None, main_enabled: bool = None, secondary_enabled: bool = None):
+def update_ad_settings(global_enabled: bool = None, main_enabled: bool = None, secondary_enabled: bool = None,
+                      main_ad_once_per_day: bool = None, secondary_ad_once_per_day: bool = None):
     """更新广告投放相关的设置，允许部分更新。"""
     if global_enabled is not None:
         set_setting('ads_global_enabled', 'true' if global_enabled else 'false')
@@ -310,6 +327,10 @@ def update_ad_settings(global_enabled: bool = None, main_enabled: bool = None, s
         set_setting('ads_main_enabled', 'true' if main_enabled else 'false')
     if secondary_enabled is not None:
         set_setting('ads_secondary_enabled', 'true' if secondary_enabled else 'false')
+    if main_ad_once_per_day is not None:
+        set_setting('main_ad_once_per_day', 'true' if main_ad_once_per_day else 'false')
+    if secondary_ad_once_per_day is not None:
+        set_setting('secondary_ad_once_per_day', 'true' if secondary_ad_once_per_day else 'false')
 
 
 def get_random_pair():
@@ -597,5 +618,59 @@ def get_visitors_by_domain_ip(start: str, end: str, page: int = 1, page_size: in
                 )
                 rows = cur.fetchall()
                 return {'data': rows, 'total': total, 'summary': summary}
+        finally:
+            conn.close()
+
+
+# 域名黑名单管理
+def add_domain_to_blacklist(domain: str):
+    """添加域名到黑名单"""
+    now = datetime.now()
+    with DB_LOCK:
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT IGNORE INTO domain_blacklist (domain, created_at) VALUES (%s, %s)",
+                    (domain, now)
+                )
+                return cur.rowcount > 0
+        finally:
+            conn.close()
+
+
+def remove_domain_from_blacklist(domain_id: int):
+    """从黑名单移除域名"""
+    with DB_LOCK:
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM domain_blacklist WHERE id=%s", (domain_id,))
+        finally:
+            conn.close()
+
+
+def list_blacklist_domains():
+    """获取黑名单域名列表"""
+    with DB_LOCK:
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM domain_blacklist ORDER BY created_at DESC")
+                rows = cur.fetchall()
+                return rows
+        finally:
+            conn.close()
+
+
+def is_domain_blacklisted(domain: str):
+    """检查域名是否在黑名单中"""
+    with DB_LOCK:
+        conn = get_conn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) as cnt FROM domain_blacklist WHERE domain=%s", (domain,))
+                row = cur.fetchone()
+                return row['cnt'] > 0
         finally:
             conn.close()
